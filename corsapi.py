@@ -12,17 +12,20 @@ except ImportError:
 
 app = Flask(__name__)
 
-def js_response_helper(dataJson, mime):
+def js_response_helper(data_json, mime):
 	"""Assumes that callback is last arg.
 	"""
 	res = ""
 	url = request.url
-	if url.find("callback=") != -1:
-		first_index = url.find("callback=") + 9
-		res = url[first_index:] + "(" + dataJson + ");"
+	cb_reg = re.compile('callback=([^&]*)')
+	cb = cb_reg.search(url)
+	if cb:
+		res = cb.expand("\g<1>")
+		res = res + "(" + data_json + ");"
+		return Response(res, mimetype='application/javascript')
 	else:
-		res = dataJson
-	return Response(res, mimetype=mime)
+		res = data_json
+		return Response(res, mimetype=mime)
 
 
 # mongoDB connection
